@@ -42,7 +42,7 @@
                     <tr>
                         <th>Username</th>
                         <th>Profile</th>
-                        <th>Status</th>
+                        <th>Status Akun</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
