@@ -29,9 +29,6 @@
             text-align: center;
             margin-top: 10px;
         }
-        .custom-select {
-            min-width: 300px; /* Lebar minimum untuk estetika */
-        }
     </style>
 </head>
 <body data-theme="<?php echo $this->session->userdata('theme') ?: 'light'; ?>">
@@ -44,28 +41,25 @@
             <main class="col-md-9 ms-sm-auto col-lg-12 px-md-4 py-4">
                 <h2 class="mb-4">Dashboard</h2>
 
-                <!-- Dropdown Profil dan Tombol Lihat Sesi Aktif -->
-                <div class="mb-4 d-flex justify-content-between align-items-center">
-                    <div class="me-3">
-                        <form action="<?php echo site_url('dashboard/index'); ?>" method="get">
-                            <div class="input-group">
-                                <select name="profile" class="form-select custom-select w-75">
-                                    <option value="">Semua Profil</option>
-                                    <?php if (empty($profiles)): ?>
-                                        <option value="">Tidak ada profil tersedia</option>
-                                    <?php else: ?>
-                                        <?php foreach ($profiles as $p): ?>
-                                            <option value="<?php echo htmlspecialchars($p['groupname']); ?>" <?php echo $selected_profile == $p['groupname'] ? 'selected' : ''; ?>>
-                                                <?php echo htmlspecialchars($p['groupname']); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </select>
-                                <button type="button" class="btn btn-secondary" onclick="window.location.href='<?php echo site_url('dashboard/index'); ?>'">Reset</button>
-                            </div>
-                        </form>
-                    </div>
-                    <a href="<?php echo site_url('dashboard/active_sessions' . ($selected_profile ? '?profile=' . urlencode($selected_profile) : '')); ?>" class="btn btn-primary">Lihat Sesi Aktif</a>
+                <!-- Dropdown Profil -->
+                <div class="mb-3">
+                    <form action="<?php echo site_url('dashboard/index'); ?>" method="get">
+                        <div class="input-group">
+                            <select name="profile" class="form-select">
+                                <option value="">Semua Profil</option>
+                                <?php if (empty($profiles)): ?>
+                                    <option value="">Tidak ada profil tersedia</option>
+                                <?php else: ?>
+                                    <?php foreach ($profiles as $p): ?>
+                                        <option value="<?php echo htmlspecialchars($p['groupname']); ?>" <?php echo $selected_profile == $p['groupname'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($p['groupname']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                            <button type="button" class="btn btn-secondary" onclick="window.location.href='<?php echo site_url('dashboard/index'); ?>'">Reset</button>
+                        </div>
+                    </form>
                 </div>
 
                 <div class="row mb-4">
@@ -101,6 +95,53 @@
                         <h4 class="card-title">Pengguna Aktif per Profil</h4>
                         <canvas id="activeUsersChart"></canvas>
                         <div id="chart-error" class="error-message"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Sesi Aktif</h4>
+                        <form action="<?php echo site_url('dashboard/search_user' . ($selected_profile ? '?profile=' . urlencode($selected_profile) : '')); ?>" method="post" class="mb-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="username" placeholder="Cari pengguna...">
+                                <button class="btn btn-primary" type="submit">Cari</button>
+                            </div>
+                        </form>
+
+                        <?php if (isset($user_status)): ?>
+                            <p>Status: <?php echo htmlspecialchars($user_status['status']); ?></p>
+                        <?php endif; ?>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>IP Address</th>
+                                        <th>Macaddress</th>
+                                        <th>Waktu Sesi</th>
+                                        <th>Upload (MB)</th>
+                                        <th>Download (MB)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($sessions as $session): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($session->username); ?></td>
+                                            <td><?php echo htmlspecialchars($session->framedipaddress); ?></td>
+                                            <td><?php echo htmlspecialchars($session->callingstationid); ?></td>
+                                            <td><?php echo htmlspecialchars($session->acctstarttime); ?></td>
+                                            <td><?php echo number_format($session->acctinputoctets / (1024 * 1024), 2); ?></td>
+                                            <td><?php echo number_format($session->acctoutputoctets / (1024 * 1024), 2); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-3">
+                            <?php echo $pagination; ?>
+                        </div>
                     </div>
                 </div>
             </main>

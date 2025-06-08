@@ -49,7 +49,7 @@ class User extends CI_Controller
         if ($this->input->post()) {
             $data = array(
                 'username' => $this->input->post('username'),
-                'value' => $this->input->post('password'), // plaintext (bukan hash)
+                'value' => password_hash($this->input->post('password'), PASSWORD_DEFAULT),
                 'attribute' => 'Cleartext-Password',
                 'op' => ':=',
                 'status' => 'active'
@@ -76,7 +76,7 @@ class User extends CI_Controller
             while (($row = fgetcsv($handle)) !== FALSE) {
                 $data = array(
                     'username' => $row[0],
-                    'value' => $row[1], // plaintext (bukan hash)
+                    'value' => password_hash($row[1], PASSWORD_DEFAULT),
                     'attribute' => 'Cleartext-Password',
                     'op' => ':=',
                     'status' => 'active'
@@ -95,36 +95,54 @@ class User extends CI_Controller
         $this->load->view('user/batch_add', $data);
     }
 
-    public function toggle_status($username, $status)
-    {
-        $new_status = ($status == 'active') ? 'inactive' : 'active';
+//     public function toggle_status($username, $status)
+//     {
+//         $new_status = ($status == 'active') ? 'inactive' : 'active';
+//         if ($new_status == 'inactive') {
+            
+//             // Disconnect user menggunakan radclient
+//             $radius_server = '127.0.0.1'; // Ganti dengan IP server FreeRADIUS
+//             $radius_secret = 'your_secret'; // Ganti dengan secret FreeRADIUS
+//             $command = "echo 'User-Name=" . escapeshellarg($username) . "' | radclient -x $radius_server disconnect $radius_secret 2>&1";
+//             exec($command, $output, $return_var);
+//             if ($return_var !== 0) {
+//                 $this->session->set_flashdata('error', 'Gagal disconnect user: ' . implode(', ', $output));
+//             }
+//         }
+//         $this->User_model->update_status($username, $new_status);
+//         redirect('user');
+//     }
+// }
+public function toggle_status($username, $status)
+{
+    $new_status = ($status == 'active') ? 'inactive' : 'active';
 
-        if ($new_status == 'inactive') {
-            // Ambil NAS IP dari radacct untuk user tersebut
-            $this->load->database();
-            $query = $this->db->select('nasipaddress')
-                              ->where('username', $username)
-                              ->where('acctstoptime', null) // hanya yang sedang aktif
-                              ->order_by('acctstarttime', 'DESC')
-                              ->limit(1)
-                              ->get('radacct');
+    if ($new_status == 'inactive') {
+        // Ambil NAS IP dari radacct untuk user tersebut
+        $this->load->database();
+        $query = $this->db->select('nasipaddress')
+                          ->where('username', $username)
+                          ->where('acctstoptime', null) // hanya yang sedang aktif
+                          ->order_by('acctstarttime', 'DESC')
+                          ->limit(1)
+                          ->get('radacct');
 
-            if ($query->num_rows() > 0) {
-                $nas_ip = $query->row()->nasipaddress;
+        if ($query->num_rows() > 0) {
+            $nas_ip = $query->row()->nasipaddress;
 
-                $radius_secret = 'your_secret'; // Ganti dengan secret FreeRADIUS
-                $command = "echo 'User-Name=$username' | radclient -x $nas_ip disconnect $radius_secret 2>&1";
-                exec($command, $output, $return_var);
+            $radius_secret = 'your_secret'; // Ganti dengan secret FreeRADIUS
+            $command = "echo 'User-Name=" . escapeshellarg($username) . "' | radclient -x $nas_ip disconnect $radius_secret 2>&1";
+            exec($command, $output, $return_var);
 
-                if ($return_var !== 0) {
-                    $this->session->set_flashdata('error', 'Gagal disconnect user: ' . implode(', ', $output));
-                }
-            } else {
-                $this->session->set_flashdata('error', 'Tidak ditemukan user aktif di radacct.');
+            if ($return_var !== 0) {
+                $this->session->set_flashdata('error', 'Gagal disconnect user: ' . implode(', ', $output));
             }
+        } else {
+            $this->session->set_flashdata('error', 'Tidak ditemukan user aktif di radacct.');
         }
-
-        $this->User_model->update_status($username, $new_status);
-        redirect('user');
     }
+
+    $this->User_model->update_status($username, $new_status);
+    redirect('user');
+}
 }
