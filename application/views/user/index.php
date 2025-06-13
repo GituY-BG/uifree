@@ -21,6 +21,9 @@
     <?php $this->load->view('layout/navbar'); ?>
     <div class="container mt-4">
         <h2>User</h2>
+        <?php if ($this->session->flashdata('success')): ?>
+            <div class="alert alert-success"><?php echo $this->session->flashdata('success'); ?></div>
+        <?php endif; ?>
         <?php if ($this->session->flashdata('error')): ?>
             <div class="alert alert-danger"><?php echo $this->session->flashdata('error'); ?></div>
         <?php endif; ?>
@@ -58,13 +61,13 @@
                                 <td><?php echo htmlspecialchars($user->groupname ? $user->groupname : '-'); ?></td>
                                 <td>
                                     <span class="badge bg-<?php echo $user->status == 'active' ? 'success' : 'danger'; ?>">
-                                        <?php echo $user->status == 'active' ? 'Aktif' : 'Nonaktif'; ?>
+                                        <?php echo $user->status == 'active' ? 'Aktif' : 'Dibekukan'; ?>
                                     </span>
                                 </td>
                                 <td>
                                     <a href="<?php echo site_url('user/toggle_status/' . urlencode($user->username) . '/' . $user->status); ?>" 
                                        class="btn btn-sm btn-<?php echo $user->status == 'active' ? 'danger' : 'success'; ?>">
-                                        <?php echo $user->status == 'active' ? 'Nonaktifkan & Disconnect' : 'Aktifkan'; ?>
+                                        <?php echo $user->status == 'active' ? 'Bekukan Akun' : 'Aktifkan'; ?>
                                     </a>
                                 </td>
                             </tr>

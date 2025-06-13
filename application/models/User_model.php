@@ -11,6 +11,7 @@ class User_model extends CI_Model
             $this->db->like('radcheck.username', $search);
         }
 
+        $this->db->order_by("CASE WHEN radcheck.status = 'inactive' THEN 0 ELSE 1 END, radcheck.username ASC");
         $this->db->limit($limit, $offset);
         return $this->db->get()->result();
     }
@@ -43,7 +44,10 @@ class User_model extends CI_Model
             $this->db->where('username', $data['username']);
             $this->db->update('radcheck', [
                 'value' => $data['value'],
-                'status' => $data['status']
+                'attribute' => 'Cleartext-Password',
+                'op' => ':=',
+                'status' => $data['status'],
+                'temp_value' => NULL
             ]);
         } else {
             // Insert user baru
@@ -63,8 +67,39 @@ class User_model extends CI_Model
 
     public function update_status($username, $status)
     {
-        $this->db->where('username', $username);
-        $this->db->update('radcheck', ['status' => $status]);
+        if ($status == 'inactive') {
+            // Membekukan akun: simpan password di temp_value dan ubah ke Auth-Type := Reject
+            $user = $this->db->get_where('radcheck', ['username' => $username])->row();
+            if ($user && $user->attribute == 'Cleartext-Password') {
+                $this->db->where('username', $username);
+                $this->db->update('radcheck', [
+                    'attribute' => 'Auth-Type',
+                    'op' => ':=',
+                    'value' => 'Reject',
+                    'temp_value' => $user->value,
+                    'status' => 'inactive'
+                ]);
+            } else {
+                $this->db->where('username', $username);
+                $this->db->update('radcheck', ['status' => 'inactive']);
+            }
+        } else {
+            // Mengaktifkan kembali: kembalikan password dari temp_value
+            $user = $this->db->get_where('radcheck', ['username' => $username])->row();
+            if ($user && $user->temp_value) {
+                $this->db->where('username', $username);
+                $this->db->update('radcheck', [
+                    'attribute' => 'Cleartext-Password',
+                    'op' => ':=',
+                    'value' => $user->temp_value,
+                    'temp_value' => NULL,
+                    'status' => 'active'
+                ]);
+            } else {
+                $this->db->where('username', $username);
+                $this->db->update('radcheck', ['status' => 'active']);
+            }
+        }
 
         return $this->db->affected_rows();
     }
