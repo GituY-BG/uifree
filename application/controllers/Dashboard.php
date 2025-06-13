@@ -12,7 +12,8 @@ class Dashboard extends CI_Controller {
     }
 
     public function index() {
-        $profile = $this->input->get('profile'); // Ambil parameter profile dari URL
+        $profile = $this->input->get('profile');
+        $username = $this->input->post('username', TRUE);
         $config['base_url'] = site_url('dashboard/index' . ($profile ? '?profile=' . urlencode($profile) : ''));
         $config['total_rows'] = $this->Dashboard_model->get_total_sessions($profile);
         $config['per_page'] = 10;
@@ -20,18 +21,30 @@ class Dashboard extends CI_Controller {
         $this->pagination->initialize($config);
 
         $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
-        $data['profiles'] = $this->Dashboard_model->get_profiles(); // Ambil daftar profil
-        $data['selected_profile'] = $profile; // Simpan profil yang dipilih
+        $data['profiles'] = $this->Dashboard_model->get_profiles();
+        $data['selected_profile'] = $profile;
         $data['active_users'] = $this->Dashboard_model->get_active_users_count($profile);
         $data['total_upload'] = $this->Dashboard_model->get_total_bandwidth('upload', $profile);
         $data['total_download'] = $this->Dashboard_model->get_total_bandwidth('download', $profile);
-        $data['sessions'] = $this->Dashboard_model->get_active_sessions($config['per_page'], $page, $profile);
+        $data['sessions'] = $this->Dashboard_model->get_top_users($config['per_page'], $page);
+        $data['auth_history'] = $this->Dashboard_model->get_auth_history($username, $config['per_page'], $page);
         $data['pagination'] = $this->pagination->create_links();
+
+        if (!empty($username)) {
+            $data['user_status'] = $this->Dashboard_model->check_user_status($username);
+            if ($data['user_status']['status'] == 'Akun Tidak Ditemukan') {
+                $this->session->set_flashdata('error', 'Akun ' . htmlspecialchars($username) . ' tidak ditemukan');
+            }
+        }
+
         $this->load->view('dashboard/index', $data);
     }
 
     public function active_sessions() {
         $username = $this->input->post('username', TRUE);
+        $start_date = $this->input->post('start_date', TRUE);
+        $end_date = $this->input->post('end_date', TRUE);
+
         $config['base_url'] = site_url('dashboard/active_sessions');
         $config['total_rows'] = $this->Dashboard_model->get_total_sessions();
         $config['per_page'] = 10;
@@ -39,13 +52,14 @@ class Dashboard extends CI_Controller {
         $this->pagination->initialize($config);
 
         $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
-        $data['sessions'] = $this->Dashboard_model->get_active_sessions($config['per_page'], $page);
+        $data['sessions'] = $this->Dashboard_model->get_top_users($config['per_page'], $page, $start_date, $end_date);
         $data['pagination'] = $this->pagination->create_links();
+        $data['start_date'] = $start_date;
+        $data['end_date'] = $end_date;
 
-        // Cek status user jika ada pencarian
         if (!empty($username)) {
             $data['user_status'] = $this->Dashboard_model->check_user_status($username);
-            if ($data['user_status']['status'] == 'Tidak Ditemukan') {
+            if ($data['user_status']['status'] == 'Akun Tidak Ditemukan') {
                 $this->session->set_flashdata('error', 'Akun ' . htmlspecialchars($username) . ' tidak ditemukan');
             }
         }

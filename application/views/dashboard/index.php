@@ -22,7 +22,7 @@
             max-height: 300px;
             width: 100%;
             display: block;
-            border: 1px solid #ccc; /* Debugging: Pastikan canvas terlihat */
+            border: 1px solid #ccc;
         }
         .error-message {
             color: red;
@@ -30,7 +30,11 @@
             margin-top: 10px;
         }
         .custom-select {
-            min-width: 300px; /* Lebar minimum untuk estetika */
+            min-width: 300px;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -44,7 +48,7 @@
             <main class="col-md-9 ms-sm-auto col-lg-12 px-md-4 py-4">
                 <h2 class="mb-4">Dashboard</h2>
 
-                <!-- Dropdown Profil dan Tombol Lihat Sesi Aktif -->
+                <!-- Dropdown Profil dan Tombol Lihat Top User -->
                 <div class="mb-4 d-flex justify-content-between align-items-center">
                     <div class="me-3">
                         <form action="<?php echo site_url('dashboard/index'); ?>" method="get">
@@ -65,8 +69,52 @@
                             </div>
                         </form>
                     </div>
-                    <a href="<?php echo site_url('dashboard/active_sessions' . ($selected_profile ? '?profile=' . urlencode($selected_profile) : '')); ?>" class="btn btn-primary">Lihat Sesi Aktif</a>
+                    <a href="<?php echo site_url('dashboard/active_sessions' . ($selected_profile ? '?profile=' . urlencode($selected_profile) : '')); ?>" class="btn btn-primary">Lihat Top User</a>
                 </div>
+
+                <!-- Form Pencarian Pengguna -->
+                <h4 class="mt-4">Cari Pengguna</h4>
+                <form action="<?php echo site_url('dashboard/index'); ?>" method="post" class="mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="username" placeholder="Cari pengguna...">
+                        <button class="btn btn-primary" type="submit">Cari</button>
+                    </div>
+                </form>
+
+                <!-- Tampilkan pesan error dari flashdata -->
+                <?php if ($this->session->flashdata('error')): ?>
+                    <div class="alert alert-danger" role="alert">
+                        <?php echo $this->session->flashdata('error'); ?>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Tabel Detail Pengguna Online -->
+                <?php if (isset($user_status) && $user_status['status'] == 'Online'): ?>
+                    <h4 class="mt-4">Detail Pengguna Online</h4>
+                    <div class="table-container">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Username</th>
+                                    <th>IP Address</th>
+                                    <th>MAC Address</th>
+                                    <th>Waktu Masuk</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($user_status['username']); ?></td>
+                                    <td><?php echo htmlspecialchars($user_status['framedipaddress']); ?></td>
+                                    <td><?php echo htmlspecialchars($user_status['callingstationid']); ?></td>
+                                    <td><?php echo htmlspecialchars($user_status['acctstarttime']); ?></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p>Status: <?php echo htmlspecialchars($user_status['status']); ?></p>
+                <?php elseif (isset($user_status)): ?>
+                    <p>Status: <?php echo htmlspecialchars($user_status['status']); ?></p>
+                <?php endif; ?>
 
                 <div class="row mb-4">
                     <div class="col-md-4">
@@ -103,6 +151,36 @@
                         <div id="chart-error" class="error-message"></div>
                     </div>
                 </div>
+
+                <!-- Tabel Riwayat Otentikasi -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 class="card-title">Riwayat Otentikasi</h4>
+                        <div class="table-container">
+                            <table class="table table-bordered table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nama Pengguna</th>
+                                        <th>Waktu Otentikasi</th>
+                                        <th>Jawaban Server</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($auth_history as $auth): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($auth->username); ?></td>
+                                            <td><?php echo htmlspecialchars($auth->authdate); ?></td>
+                                            <td><?php echo htmlspecialchars($auth->reply); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3">
+                            <?php echo $pagination; ?>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
@@ -113,25 +191,21 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
     $(document).ready(function() {
-        // Debugging: Log data profil ke konsol
         const profiles = <?php echo json_encode($profiles); ?>;
         console.log('Profiles:', profiles);
 
-        // Debugging: Log data untuk grafik
         const chartLabels = [<?php foreach ($profiles as $p) { echo '"' . htmlspecialchars($p['groupname']) . '",'; } ?>];
         const chartData = [<?php foreach ($profiles as $p) { echo $this->Dashboard_model->get_active_users_count($p['groupname']) . ','; } ?>];
         console.log('Chart Labels:', chartLabels);
         console.log('Chart Data:', chartData);
 
-        // Periksa apakah Chart.js tersedia
         const errorDiv = document.getElementById('chart-error');
         if (typeof Chart === 'undefined') {
-            console.error('Chart.js tidak ter-load. Pastikan file assets/js/chart.min.js ada dan dapat diakses.');
-            errorDiv.innerHTML = 'Gagal memuat grafik: Chart.js tidak tersedia. Pastikan file lokal tersedia.';
+            console.error('Chart.js tidak ter-load.');
+            errorDiv.innerHTML = 'Gagal memuat grafik: Chart.js tidak tersedia.';
             return;
         }
 
-        // Periksa apakah canvas ada
         const canvas = document.getElementById('activeUsersChart');
         if (!canvas) {
             console.error('Canvas #activeUsersChart tidak ditemukan.');
@@ -139,14 +213,12 @@
             return;
         }
 
-        // Periksa apakah data valid
         if (chartLabels.length === 0 || chartData.length === 0) {
-            console.warn('Data grafik kosong. Tidak ada profil atau pengguna aktif.');
+            console.warn('Data grafik kosong.');
             errorDiv.innerHTML = 'Tidak ada data untuk ditampilkan.';
             return;
         }
 
-        // Render grafik
         const ctx = canvas.getContext('2d');
         new Chart(ctx, {
             type: 'line',
@@ -192,7 +264,6 @@
             }
         });
 
-        // Skrip untuk dropdown profil
         $('select[name="profile"]').change(function() {
             console.log('Dropdown changed:', $(this).val());
             window.location.href = '<?php echo site_url('dashboard/index'); ?>?profile=' + encodeURIComponent($(this).val());

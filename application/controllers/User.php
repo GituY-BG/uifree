@@ -112,7 +112,7 @@ class User extends CI_Controller
             if ($query->num_rows() > 0) {
                 $nas_ip = $query->row()->nasipaddress;
 
-                $radius_secret = 'your_secret'; // Ganti dengan secret FreeRADIUS
+                $radius_secret = 'royan'; // Ganti dengan secret FreeRADIUS
                 $command = "echo 'User-Name=$username' | radclient -x $nas_ip disconnect $radius_secret 2>&1";
                 exec($command, $output, $return_var);
 

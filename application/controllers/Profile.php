@@ -24,13 +24,13 @@ class Profile extends CI_Controller
             $data = array(
                 'groupname' => $this->input->post('groupname'),
                 'attribute' => 'Mikrotik-Rate-Limit',
-                'op' => '=',
+                'op' => ':=',
                 'value' => $this->input->post('rate_limit')
             );
             $data_simultan = array(
                 'groupname' => $this->input->post('groupname'),
                 'attribute' => 'Simultaneous-Use',
-                'op' => '=',
+                'op' => ':=',
                 'value' => $this->input->post('simultan')
             );
             $this->Profile_model->add_profile($data, $data_simultan);
