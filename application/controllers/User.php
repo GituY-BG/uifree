@@ -107,7 +107,7 @@ class User extends CI_Controller
             if ($online_status == 'Online') {
                 // Cari semua sesi aktif untuk user ini
                 $this->load->database();
-                $query = $this->db->select('nasipaddress, acctsessionid, callingstationid, nasportid')
+                $query = $this->db->select('nasipaddress, acctsessionid')
                                   ->where('username', $username)
                                   ->where('acctstoptime IS NULL')
                                   ->get('radacct');
@@ -115,23 +115,12 @@ class User extends CI_Controller
                 foreach ($query->result() as $session) {
                     $nas_ip = $session->nasipaddress;
                     $acctsessionid = $session->acctsessionid;
-                    $callingstationid = $session->callingstationid;
-                    $nasportid = $session->nasportid;
 
+                    // Hanya gunakan atribut minimal untuk Mikrotik
                     $attributes = [
                         "User-Name=$username",
-                        "NAS-IP-Address=$nas_ip"
+                        "Acct-Session-Id=$acctsessionid"
                     ];
-
-                    if ($acctsessionid) {
-                        $attributes[] = "Acct-Session-Id=$acctsessionid";
-                    }
-                    if ($callingstationid) {
-                        $attributes[] = "Calling-Station-Id=$callingstationid";
-                    }
-                    if ($nasportid) {
-                        $attributes[] = "NAS-Port-Id=$nasportid";
-                    }
 
                     $attributes_str = implode(',', $attributes);
 
