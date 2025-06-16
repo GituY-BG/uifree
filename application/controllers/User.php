@@ -100,8 +100,59 @@ class User extends CI_Controller
     public function toggle_status($username, $status)
     {
         $new_status = ($status == 'active') ? 'inactive' : 'active';
+
+        if ($new_status == 'inactive') {
+            // Periksa apakah user online
+            $online_status = $this->User_model->get_user_online_status($username);
+            if ($online_status == 'Online') {
+                // Cari semua sesi aktif untuk user ini
+                $this->load->database();
+                $query = $this->db->select('nasipaddress, acctsessionid, callingstationid, nasportid')
+                                  ->where('username', $username)
+                                  ->where('acctstoptime IS NULL')
+                                  ->get('radacct');
+
+                foreach ($query->result() as $session) {
+                    $nas_ip = $session->nasipaddress;
+                    $acctsessionid = $session->acctsessionid;
+                    $callingstationid = $session->callingstationid;
+                    $nasportid = $session->nasportid;
+
+                    $attributes = [
+                        "User-Name=$username",
+                        "NAS-IP-Address=$nas_ip"
+                    ];
+
+                    if ($acctsessionid) {
+                        $attributes[] = "Acct-Session-Id=$acctsessionid";
+                    }
+                    if ($callingstationid) {
+                        $attributes[] = "Calling-Station-Id=$callingstationid";
+                    }
+                    if ($nasportid) {
+                        $attributes[] = "NAS-Port-Id=$nasportid";
+                    }
+
+                    $attributes_str = implode(',', $attributes);
+
+                    $radius_secret = 'royan'; // Ganti dengan shared secret yang benar
+                    $command = "echo '$attributes_str' | radclient -x $nas_ip:3799 disconnect $radius_secret 2>&1";
+                    exec($command, $output, $return_var);
+
+                    if ($return_var !== 0) {
+                        $this->session->set_flashdata('error', 'Gagal disconnect user: ' . implode(', ', $output));
+                        redirect('user');
+                    }
+                }
+                $this->session->set_flashdata('success', 'Akun ' . htmlspecialchars($username) . ' berhasil dibekukan dan sesi aktif telah diputus.');
+            } else {
+                $this->session->set_flashdata('success', 'Akun ' . htmlspecialchars($username) . ' berhasil dibekukan. Pengguna sedang offline.');
+            }
+        } else {
+            $this->session->set_flashdata('success', 'Akun ' . htmlspecialchars($username) . ' berhasil diaktifkan kembali.');
+        }
+
         $this->User_model->update_status($username, $new_status);
-        $this->session->set_flashdata('success', 'Akun ' . htmlspecialchars($username) . ' telah ' . ($new_status == 'inactive' ? 'dibekukan' : 'diaktifkan kembali') . '.');
         redirect('user');
     }
 }

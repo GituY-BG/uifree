@@ -46,13 +46,14 @@
                         <th>Username</th>
                         <th>Profile</th>
                         <th>Status Akun</th>
+                        <th>Status Koneksi</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($users)): ?>
                         <tr>
-                            <td colspan="4" class="text-center">Tidak ada data ditemukan</td>
+                            <td colspan="5" class="text-center">Tidak ada data ditemukan</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($users as $user): ?>
@@ -65,9 +66,14 @@
                                     </span>
                                 </td>
                                 <td>
+                                    <span class="badge bg-<?php echo $user->online_status > 0 ? 'success' : 'secondary'; ?>">
+                                        <?php echo $user->online_status > 0 ? 'Online' : 'Offline'; ?>
+                                    </span>
+                                </td>
+                                <td>
                                     <a href="<?php echo site_url('user/toggle_status/' . urlencode($user->username) . '/' . $user->status); ?>" 
                                        class="btn btn-sm btn-<?php echo $user->status == 'active' ? 'danger' : 'success'; ?>">
-                                        <?php echo $user->status == 'active' ? 'Bekukan Akun' : 'Aktifkan'; ?>
+                                        <?php echo $user->status == 'active' ? 'Bekukan' . ($user->online_status > 0 ? ' dan Disconnect' : '') : 'Aktifkan'; ?>
                                     </a>
                                 </td>
                             </tr>

@@ -3,7 +3,7 @@ class User_model extends CI_Model
 {
     public function get_users($search = '', $limit = 20, $offset = 0)
     {
-        $this->db->select('radcheck.*, radusergroup.groupname');
+        $this->db->select('radcheck.*, radusergroup.groupname, (SELECT COUNT(*) FROM radacct WHERE radacct.username = radcheck.username AND acctstoptime IS NULL) AS online_status');
         $this->db->from('radcheck');
         $this->db->join('radusergroup', 'radcheck.username = radusergroup.username', 'left');
         
@@ -102,5 +102,15 @@ class User_model extends CI_Model
         }
 
         return $this->db->affected_rows();
+    }
+
+    public function get_user_online_status($username)
+    {
+        $this->db->select('COUNT(*) as is_online');
+        $this->db->where('username', $username);
+        $this->db->where('acctstoptime IS NULL');
+        $query = $this->db->get('radacct');
+        $result = $query->row();
+        return $result->is_online > 0 ? 'Online' : 'Offline';
     }
 }
