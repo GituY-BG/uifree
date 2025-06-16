@@ -122,7 +122,7 @@ class User extends CI_Controller
                         "Acct-Session-Id=$acctsessionid"
                     ];
 
-                    $attributes_str = implode(',', $attributes);
+                    $attributes_str = implode('\n', $attributes);
 
                     $radius_secret = 'royan'; // Ganti dengan shared secret yang benar
                     $command = "echo '$attributes_str' | radclient -x $nas_ip:3799 disconnect $radius_secret 2>&1";
