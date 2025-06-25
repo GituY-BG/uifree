@@ -46,9 +46,12 @@ class Settings extends CI_Controller {
     }
 
     public function edit_profile($groupname) {
+        // Dekode groupname untuk menangani spasi atau karakter khusus
+        $groupname = urldecode($groupname);
         $data['profile'] = $this->Settings_model->get_profile_by_groupname($groupname);
         if (!$data['profile']) {
-            $this->session->set_flashdata('error', 'Profil tidak ditemukan.');
+            log_message('error', 'Profil tidak ditemukan untuk groupname: ' . $groupname);
+            $this->session->set_flashdata('error', 'Profil "' . htmlspecialchars($groupname) . '" tidak ditemukan.');
             redirect('settings');
         }
         $data['rate_limit'] = $this->Settings_model->get_profile_attribute($groupname, 'Mikrotik-Rate-Limit');
@@ -61,7 +64,7 @@ class Settings extends CI_Controller {
         $rate_limit = $this->input->post('rate_limit');
         if (!preg_match('/^\d+[kM]\/\d+[kM]$/', $rate_limit)) {
             $this->session->set_flashdata('error', 'Format rate limit tidak valid.');
-            redirect('settings/edit_profile/' . $groupname);
+            redirect('settings/edit_profile/' . urlencode($groupname));
         }
         $data = array(
             'value' => $rate_limit
@@ -71,7 +74,7 @@ class Settings extends CI_Controller {
         );
         $this->Settings_model->update_profile($groupname, $data, $data_simultan);
         $this->Settings_model->log_activity($this->session->userdata('admin_id'), $this->session->userdata('username'), 'Update Profile', "Mengubah data profile: $groupname");
-        $this->session->set_flashdata('success', 'Data profile berhasil diperbarui.');
+        $this->session->set_flashdata('success', 'Data profil berhasil diperbarui.');
         redirect('settings');
     }
 
@@ -92,7 +95,7 @@ class Settings extends CI_Controller {
     public function delete_profile($groupname) {
         $this->Settings_model->delete_profile($groupname);
         $this->Settings_model->log_activity($this->session->userdata('admin_id'), $this->session->userdata('username'), 'Delete Profile', "Menghapus profile: $groupname dan semua user terkait");
-        $this->session->set_flashdata('success', 'Profile dan semua user terkait berhasil dihapus.');
+        $this->session->set_flashdata('success', 'Profil dan semua user terkait berhasil dihapus.');
         redirect('settings');
     }
 

@@ -9,7 +9,7 @@ class Settings_model extends CI_Model {
         } elseif ($status == 'inactive') {
             $this->db->where('username NOT IN (SELECT username FROM radacct WHERE acctstoptime IS NULL)', NULL, FALSE);
         }
-        $this->db->limit(10); // Limit to 10 users
+        $this->db->limit(10);
         return $this->db->get('radcheck')->result();
     }
 
@@ -22,7 +22,7 @@ class Settings_model extends CI_Model {
             $this->db->like('r1.groupname', $search);
         }
         $this->db->group_by('r1.groupname');
-        $this->db->limit(10); // Limit to 10 profiles
+        $this->db->limit(10);
         return $this->db->get()->result();
     }
 
@@ -38,8 +38,19 @@ class Settings_model extends CI_Model {
     }
 
     public function get_profile_by_groupname($groupname) {
+        // Sanitasi input untuk mencegah masalah spasi atau karakter khusus
         $this->db->where('groupname', $groupname);
-        return $this->db->get('radgroupreply')->row();
+        $query = $this->db->get('radgroupreply');
+        $result = $query->row();
+        
+        // Debugging
+        if (!$result) {
+            log_message('error', 'Profil tidak ditemukan di radgroupreply untuk groupname: ' . $groupname);
+        } else {
+            log_message('debug', 'Profil ditemukan: ' . json_encode($result));
+        }
+        
+        return $result;
     }
 
     public function get_profile_attribute($groupname, $attribute) {
@@ -59,7 +70,6 @@ class Settings_model extends CI_Model {
     }
 
     public function update_profile($groupname, $data, $data_simultan) {
-        // Update or insert Mikrotik-Rate-Limit
         $this->db->where('groupname', $groupname);
         $this->db->where('attribute', 'Mikrotik-Rate-Limit');
         $existing = $this->db->get('radgroupreply')->row();
@@ -74,7 +84,6 @@ class Settings_model extends CI_Model {
             $this->db->insert('radgroupreply', $data);
         }
 
-        // Update or insert Simultaneous-Use
         $this->db->where('groupname', $groupname);
         $this->db->where('attribute', 'Simultaneous-Use');
         $existing_simultan = $this->db->get('radgroupreply')->row();
@@ -98,13 +107,11 @@ class Settings_model extends CI_Model {
     }
 
     public function delete_profile($groupname) {
-        // Delete associated users
         $this->db->where('groupname', $groupname);
         $users = $this->db->get('radusergroup')->result();
         foreach ($users as $user) {
             $this->delete_user($user->username);
         }
-        // Delete profile
         $this->db->where('groupname', $groupname);
         $this->db->delete('radgroupreply');
         $this->db->where('groupname', $groupname);
