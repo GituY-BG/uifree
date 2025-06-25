@@ -46,7 +46,6 @@ class Settings extends CI_Controller {
     }
 
     public function edit_profile($groupname) {
-        // Dekode groupname untuk menangani spasi atau karakter khusus
         $groupname = urldecode($groupname);
         $data['profile'] = $this->Settings_model->get_profile_by_groupname($groupname);
         if (!$data['profile']) {
@@ -86,16 +85,25 @@ class Settings extends CI_Controller {
     }
 
     public function delete_user($username) {
-        $this->Settings_model->delete_user($username);
-        $this->Settings_model->log_activity($this->session->userdata('admin_id'), $this->session->userdata('username'), 'Delete User', "Menghapus user: $username");
-        $this->session->set_flashdata('success', 'User berhasil dihapus.');
+        $success = $this->Settings_model->delete_user($username);
+        if ($success) {
+            $this->Settings_model->log_activity($this->session->userdata('admin_id'), $this->session->userdata('username'), 'Delete User', "Menghapus user: $username");
+            $this->session->set_flashdata('success', 'User berhasil dihapus.');
+        } else {
+            $this->session->set_flashdata('error', 'Gagal menghapus user: ' . htmlspecialchars($username));
+        }
         redirect('settings');
     }
 
     public function delete_profile($groupname) {
-        $this->Settings_model->delete_profile($groupname);
-        $this->Settings_model->log_activity($this->session->userdata('admin_id'), $this->session->userdata('username'), 'Delete Profile', "Menghapus profile: $groupname dan semua user terkait");
-        $this->session->set_flashdata('success', 'Profil dan semua user terkait berhasil dihapus.');
+        $groupname = urldecode($groupname);
+        $success = $this->Settings_model->delete_profile($groupname);
+        if ($success) {
+            $this->Settings_model->log_activity($this->session->userdata('admin_id'), $this->session->userdata('username'), 'Delete Profile', "Menghapus profil: $groupname dan semua user terkait");
+            $this->session->set_flashdata('success', 'Profil dan semua user terkait berhasil dihapus.');
+        } else {
+            $this->session->set_flashdata('error', 'Gagal menghapus profil: ' . htmlspecialchars($groupname));
+        }
         redirect('settings');
     }
 
