@@ -47,6 +47,10 @@ class Settings extends CI_Controller {
 
     public function edit_profile($groupname) {
         $data['profile'] = $this->Settings_model->get_profile_by_groupname($groupname);
+        if (!$data['profile']) {
+            $this->session->set_flashdata('error', 'Profil tidak ditemukan.');
+            redirect('settings');
+        }
         $data['rate_limit'] = $this->Settings_model->get_profile_attribute($groupname, 'Mikrotik-Rate-Limit');
         $data['simultan'] = $this->Settings_model->get_profile_attribute($groupname, 'Simultaneous-Use');
         $this->load->view('settings/edit_profile', $data);
