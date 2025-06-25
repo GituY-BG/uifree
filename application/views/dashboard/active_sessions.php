@@ -122,6 +122,16 @@
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
+                        <?php if (!empty($selected_profile) && !empty($total_bandwidth)): ?>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-right">Total:</th>
+                                    <th><?php echo number_format($total_bandwidth['total_upload'], 2); ?> GB</th>
+                                    <th><?php echo number_format($total_bandwidth['total_download'], 2); ?> GB</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        <?php endif; ?>
                     </table>
                 </div>
 

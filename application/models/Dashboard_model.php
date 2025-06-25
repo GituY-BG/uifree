@@ -9,7 +9,6 @@ class Dashboard_model extends CI_Model {
         $query = $this->db->get();
         $result = $query->result_array();
         
-        // Debugging untuk memeriksa data profil
         if (empty($result)) {
             log_message('debug', 'Tidak ada profil ditemukan di tabel radgroupreply');
         } else {
@@ -48,7 +47,7 @@ class Dashboard_model extends CI_Model {
         }
         $query = $this->db->get('radacct');
         $result = $query->row();
-        return $result->total ? round($result->total / (1024 * 1024 * 1024), 2) : 0; // Konversi ke GB
+        return $result->total ? round($result->total / (1024 * 1024 * 1024), 2) : 0;
     }
 
     public function get_top_users($limit = 10, $offset = 0, $start_date = NULL, $end_date = NULL, $profile = NULL) {
@@ -62,15 +61,22 @@ class Dashboard_model extends CI_Model {
             $this->db->where('acctstarttime >=', $start_date);
             $this->db->where('acctstarttime <=', $end_date);
         }
-        $this->db->group_by('radacct.username, framedipaddress, callingstationid, radusergroup.groupname');
+        $this->db->group_by('radacct.username, radacct.callingstationid, framedipaddress, radusergroup.groupname');
         $this->db->order_by('(SUM(acctinputoctets) + SUM(acctoutputoctets))', 'DESC', FALSE);
         $this->db->limit($limit, $offset);
         $query = $this->db->get();
-        return $query->result();
+        $result = $query->result();
+        
+        if (empty($result)) {
+            log_message('debug', 'Tidak ada data pengguna ditemukan untuk profil: ' . ($profile ?: 'Semua') . ', tanggal: ' . ($start_date ?: 'N/A') . ' - ' . ($end_date ?: 'N/A'));
+        }
+        
+        return $result;
     }
 
     public function get_auth_history($username = NULL, $limit = 10, $offset = 0) {
         $this->db->select('username, authdate, reply');
+        $this->db-group_by('radacct.username, radacct.callingstationid, framedipaddress, radusergroup.groupname');
         $this->db->from('radpostauth');
         if ($username) {
             $this->db->where('username', $username);
@@ -102,7 +108,6 @@ class Dashboard_model extends CI_Model {
         return ['username' => $username, 'status' => 'Offline'];
     }
 
-    // Method baru untuk ringkasan profil
     public function get_profile_summary($profile) {
         $this->db->select('radusergroup.groupname as profile, COUNT(DISTINCT radacct.username) as user_count, SUM(acctinputoctets) / (1024 * 1024 * 1024) as total_upload, SUM(acctoutputoctets) / (1024 * 1024 * 1024) as total_download');
         $this->db->from('radacct');
@@ -112,7 +117,6 @@ class Dashboard_model extends CI_Model {
         $query = $this->db->get();
         $result = $query->row();
         
-        // Debugging untuk memeriksa data ringkasan profil
         if (!$result) {
             log_message('debug', 'Tidak ada data ringkasan untuk profil: ' . $profile);
         } else {
@@ -125,5 +129,24 @@ class Dashboard_model extends CI_Model {
             'total_upload' => round($result->total_upload, 2),
             'total_download' => round($result->total_download, 2)
         ] : null;
+    }
+
+    // Method baru untuk total bandwidth di tabel Top User pada Profil
+    public function get_total_bandwidth_per_profile($profile, $start_date = NULL, $end_date = NULL) {
+        $this->db->select('SUM(acctinputoctets) / (1024 * 1024 * 1024) as total_upload, SUM(acctoutputoctets) / (1024 * 1024 * 1024) as total_download');
+        $this->db->from('radacct');
+        $this->db->join('radusergroup', 'radacct.username = radusergroup.username', 'left');
+        $this->db->where('radusergroup.groupname', $profile);
+        if ($start_date && $end_date) {
+            $this->db->where('acctstarttime >=', $start_date);
+            $this->db->where('acctstarttime <=', $end_date);
+        }
+        $query = $this->db->get();
+        $result = $query->row();
+        
+        return [
+            'total_upload' => $result->total_upload ? round($result->total_upload, 2) : 0,
+            'total_download' => $result->total_download ? round($result->total_download, 2) : 0
+        ];
     }
 }
