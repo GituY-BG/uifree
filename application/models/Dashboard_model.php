@@ -76,7 +76,6 @@ class Dashboard_model extends CI_Model {
 
     public function get_auth_history($username = NULL, $limit = 10, $offset = 0) {
         $this->db->select('username, authdate, reply');
-        $this->db-group_by('radacct.username, radacct.callingstationid, framedipaddress, radusergroup.groupname');
         $this->db->from('radpostauth');
         if ($username) {
             $this->db->where('username', $username);
@@ -131,7 +130,6 @@ class Dashboard_model extends CI_Model {
         ] : null;
     }
 
-    // Method baru untuk total bandwidth di tabel Top User pada Profil
     public function get_total_bandwidth_per_profile($profile, $start_date = NULL, $end_date = NULL) {
         $this->db->select('SUM(acctinputoctets) / (1024 * 1024 * 1024) as total_upload, SUM(acctoutputoctets) / (1024 * 1024 * 1024) as total_download');
         $this->db->from('radacct');
