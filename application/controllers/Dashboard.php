@@ -41,18 +41,25 @@ class Dashboard extends CI_Controller {
     }
 
     public function active_sessions() {
+        $profile = $this->input->get('profile');
         $username = $this->input->post('username', TRUE);
         $start_date = $this->input->post('start_date', TRUE);
-        $end_date = $this->input->post('end_date', TRUE);
+        $end_date = ($this->input->post('end_date', TRUE));
 
-        $config['base_url'] = site_url('dashboard/active_sessions');
-        $config['total_rows'] = $this->Dashboard_model->get_total_sessions();
+        $config['base_url'] = site_url('dashboard/active_sessions' . ($profile ? '?profile=' . urlencode($profile) : ''));
+        $config['total_rows'] = $this->Dashboard_model->get_total_sessions($profile);
         $config['per_page'] = 10;
         $config['uri_segment'] = 3;
         $this->pagination->initialize($config);
 
         $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
-        $data['sessions'] = $this->Dashboard_model->get_top_users($config['per_page'], $page, $start_date, $end_date);
+        $data['profiles'] = $this->Dashboard_model->get_profiles();
+        $data['selected_profile'] = $profile;
+        // Ambil data untuk tabel profil jika profil dipilih
+        if ($profile) {
+            $data['profile_summary'] = $this->Dashboard_model->get_profile_summary($profile);
+        }
+        $data['sessions'] = $this->Dashboard_model->get_top_users($config['per_page'], $page, $start_date, $end_date, $profile);
         $data['pagination'] = $this->pagination->create_links();
         $data['start_date'] = $start_date;
         $data['end_date'] = $end_date;
