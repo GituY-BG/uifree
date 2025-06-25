@@ -38,12 +38,10 @@ class Settings_model extends CI_Model {
     }
 
     public function get_profile_by_groupname($groupname) {
-        // Sanitasi input untuk mencegah masalah spasi atau karakter khusus
         $this->db->where('groupname', $groupname);
         $query = $this->db->get('radgroupreply');
         $result = $query->row();
         
-        // Debugging
         if (!$result) {
             log_message('error', 'Profil tidak ditemukan di radgroupreply untuk groupname: ' . $groupname);
         } else {
@@ -100,22 +98,66 @@ class Settings_model extends CI_Model {
     }
 
     public function delete_user($username) {
+        // Mulai transaksi untuk memastikan integritas data
+        $this->db->trans_start();
+        
+        // Hapus dari radcheck
         $this->db->where('username', $username);
         $this->db->delete('radcheck');
+        log_message('debug', 'Menghapus pengguna ' . $username . ' dari radcheck');
+
+        // Hapus dari radusergroup
         $this->db->where('username', $username);
         $this->db->delete('radusergroup');
+        log_message('debug', 'Menghapus pengguna ' . $username . ' dari radusergroup');
+
+        // Hapus dari radacct
+        $this->db->where('username', $username);
+        $this->db->delete('radacct');
+        log_message('debug', 'Menghapus sesi pengguna ' . $username . ' dari radacct');
+
+        // Selesai transaksi
+        $this->db->trans_complete();
+        
+        if ($this->db->trans_status() === FALSE) {
+            log_message('error', 'Gagal menghapus pengguna ' . $username . ': Transaksi gagal');
+        } else {
+            log_message('info', 'Berhasil menghapus pengguna ' . $username . ' dari semua tabel terkait');
+        }
     }
 
     public function delete_profile($groupname) {
+        // Mulai transaksi untuk memastikan integritas data
+        $this->db->trans_start();
+        
+        // Ambil semua pengguna yang terkait dengan profil
         $this->db->where('groupname', $groupname);
         $users = $this->db->get('radusergroup')->result();
+        log_message('debug', 'Menemukan ' . count($users) . ' pengguna untuk profil ' . $groupname);
+
+        // Hapus setiap pengguna dan data terkait
         foreach ($users as $user) {
             $this->delete_user($user->username);
         }
+
+        // Hapus profil dari radgroupreply
         $this->db->where('groupname', $groupname);
         $this->db->delete('radgroupreply');
+        log_message('debug', 'Menghapus profil ' . $groupname . ' dari radgroupreply');
+
+        // Hapus profil dari radgroupcheck
         $this->db->where('groupname', $groupname);
         $this->db->delete('radgroupcheck');
+        log_message('debug', 'Menghapus profil ' . $groupname . ' dari radgroupcheck');
+
+        // Selesai transaksi
+        $this->db->trans_complete();
+        
+        if ($this->db->trans_status() === FALSE) {
+            log_message('error', 'Gagal menghapus profil ' . $groupname . ': Transaksi gagal');
+        } else {
+            log_message('info', 'Berhasil menghapus profil ' . $groupname . ' dan semua data terkait');
+        }
     }
 
     public function log_activity($admin_id, $username, $action, $details) {
