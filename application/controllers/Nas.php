@@ -7,6 +7,7 @@ class Nas extends CI_Controller
     {
         parent::__construct();
         $this->load->model('Nas_model');
+        $this->load->model('Settings_model'); // Menggunakan Settings_model untuk konsistensi
         if (!$this->session->userdata('admin_id')) {
             redirect('auth');
         }
@@ -33,6 +34,13 @@ class Nas extends CI_Controller
                 'description' => $this->input->post('description')
             );
             $this->Nas_model->add_nas($data);
+            // Catat log aktivitas
+            $this->Settings_model->log_activity(
+                $this->session->userdata('admin_id'),
+                $this->session->userdata('username') ?: 'Unknown',
+                'Add NAS',
+                'Added NAS: ' . $data['nasname']
+            );
             $this->session->set_flashdata('success', 'NAS berhasil ditambahkan.');
             redirect('nas');
         }
@@ -63,6 +71,13 @@ class Nas extends CI_Controller
             'description' => $this->input->post('description')
         );
         $this->Nas_model->update_nas($id, $data);
+        // Catat log aktivitas
+        $this->Settings_model->log_activity(
+            $this->session->userdata('admin_id'),
+            $this->session->userdata('username') ?: 'Unknown',
+            'Update NAS',
+            'Updated NAS: ' . $data['nasname']
+        );
         $this->session->set_flashdata('success', 'NAS berhasil diperbarui.');
         redirect('nas');
     }
@@ -75,8 +90,14 @@ class Nas extends CI_Controller
             redirect('nas');
         }
         $this->Nas_model->delete_nas($id);
+        // Catat log aktivitas
+        $this->Settings_model->log_activity(
+            $this->session->userdata('admin_id'),
+            $this->session->userdata('username') ?: 'Unknown',
+            'Delete NAS',
+            'Deleted NAS: ' . $nas->nasname
+        );
         $this->session->set_flashdata('success', 'NAS berhasil dihapus.');
         redirect('nas');
     }
 }
-?>

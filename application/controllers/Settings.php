@@ -80,7 +80,6 @@ class Settings extends CI_Controller {
     public function switch_theme() {
         $theme = $this->input->post('theme');
         $this->session->set_userdata('theme', $theme);
-        $this->Settings_model->log_activity($this->session->userdata('admin_id'), $this->session->userdata('username'), 'Switch Theme', "Mengganti tema ke: $theme");
         redirect($this->input->server('HTTP_REFERER'));
     }
 

@@ -98,28 +98,23 @@ class Settings_model extends CI_Model {
     }
 
     public function delete_user($username) {
-        // Mulai transaksi
         $this->db->trans_start();
         
-        // Hapus dari radcheck
         $this->db->where('username', $username);
         $this->db->delete('radcheck');
         $affected_radcheck = $this->db->affected_rows();
         log_message('debug', 'Menghapus pengguna ' . $username . ' dari radcheck: ' . $affected_radcheck . ' baris terhapus');
 
-        // Hapus dari radusergroup
         $this->db->where('username', $username);
         $this->db->delete('radusergroup');
         $affected_radusergroup = $this->db->affected_rows();
         log_message('debug', 'Menghapus pengguna ' . $username . ' dari radusergroup: ' . $affected_radusergroup . ' baris terhapus');
 
-        // Hapus dari radacct
         $this->db->where('username', $username);
         $this->db->delete('radacct');
         $affected_radacct = $this->db->affected_rows();
         log_message('debug', 'Menghapus sesi pengguna ' . $username . ' dari radacct: ' . $affected_radacct . ' baris terhapus');
 
-        // Selesai transaksi
         $this->db->trans_complete();
         
         if ($this->db->trans_status() === FALSE) {
@@ -132,15 +127,12 @@ class Settings_model extends CI_Model {
     }
 
     public function delete_profile($groupname) {
-        // Mulai transaksi
         $this->db->trans_start();
         
-        // Ambil semua pengguna yang terkait dengan profil
         $this->db->where('groupname', $groupname);
         $users = $this->db->get('radusergroup')->result();
         log_message('debug', 'Menemukan ' . count($users) . ' pengguna untuk profil ' . $groupname);
 
-        // Hapus setiap pengguna dan data terkait
         foreach ($users as $user) {
             if (!$this->delete_user($user->username)) {
                 $this->db->trans_rollback();
@@ -149,19 +141,16 @@ class Settings_model extends CI_Model {
             }
         }
 
-        // Hapus profil dari radgroupreply
         $this->db->where('groupname', $groupname);
         $this->db->delete('radgroupreply');
         $affected_radgroupreply = $this->db->affected_rows();
         log_message('debug', 'Menghapus profil ' . $groupname . ' dari radgroupreply: ' . $affected_radgroupreply . ' baris terhapus');
 
-        // Hapus profil dari radgroupcheck
         $this->db->where('groupname', $groupname);
         $this->db->delete('radgroupcheck');
         $affected_radgroupcheck = $this->db->affected_rows();
         log_message('debug', 'Menghapus profil ' . $groupname . ' dari radgroupcheck: ' . $affected_radgroupcheck . ' baris terhapus');
 
-        // Selesai transaksi
         $this->db->trans_complete();
         
         if ($this->db->trans_status() === FALSE) {
@@ -181,6 +170,9 @@ class Settings_model extends CI_Model {
             'details' => $details
         );
         $this->db->insert('admin_logs', $data);
+        if ($this->db->affected_rows() == 0) {
+            log_message('error', 'Failed to insert log: ' . print_r($data, true) . ' - ' . $this->db->error()['message']);
+        }
     }
 
     public function get_logs() {
@@ -188,4 +180,3 @@ class Settings_model extends CI_Model {
         return $this->db->get('admin_logs')->result();
     }
 }
-?>
