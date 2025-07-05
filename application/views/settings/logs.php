@@ -8,6 +8,20 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="<?php echo base_url('assets/css/style.css'); ?>" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+         
+        .nav-link.active {
+            background-color: #0d6efd;
+            font-weight: 500;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .table-container table {
+            width: 100%;
+        }
+    </style>
 </head>
 <body data-theme="<?php echo $this->session->userdata('theme') ?: 'light'; ?>">
     <div class="container-fluid">

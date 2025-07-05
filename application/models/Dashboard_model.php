@@ -38,16 +38,23 @@ class Dashboard_model extends CI_Model {
         return $this->db->count_all_results('radacct');
     }
 
-    public function get_total_bandwidth($type, $profile = NULL) {
-        $column = ($type == 'upload') ? 'acctinputoctets' : 'acctoutputoctets';
-        $this->db->select_sum($column, 'total');
+    public function get_total_users($profile = NULL) {
+        $this->db->select('COUNT(DISTINCT username) as total');
+        $this->db->from('radusergroup');
         if ($profile) {
-            $this->db->join('radusergroup', 'radacct.username = radusergroup.username', 'left');
-            $this->db->where('radusergroup.groupname', $profile);
+            $this->db->where('groupname', $profile);
         }
-        $query = $this->db->get('radacct');
+        $query = $this->db->get();
         $result = $query->row();
-        return $result->total ? round($result->total / (1024 * 1024 * 1024), 2) : 0;
+        return $result->total ? $result->total : 0;
+    }
+
+    public function get_total_profiles() {
+        $this->db->select('COUNT(DISTINCT groupname) as total');
+        $this->db->from('radgroupreply');
+        $query = $this->db->get();
+        $result = $query->row();
+        return $result->total ? $result->total : 0;
     }
 
     public function get_top_users($limit = 10, $offset = 0, $start_date = NULL, $end_date = NULL, $profile = NULL) {
@@ -140,7 +147,7 @@ class Dashboard_model extends CI_Model {
             $this->db->where('acctstarttime <=', $end_date);
         }
         $query = $this->db->get();
-        $result = $query->row();
+        $result = $this->db->row();
         
         return [
             'total_upload' => $result->total_upload ? round($result->total_upload, 2) : 0,

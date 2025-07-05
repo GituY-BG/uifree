@@ -1,0 +1,177 @@
+/* assets/css/theme.css */
+:root,
+[data-theme="light"] {
+    --background-color: #ffffff;
+    --text-color: #333333;
+    --card-background: #f8f9fa;
+    --navbar-background: #007bff;
+    /* Biru cerah untuk tema terang */
+    --navbar-text: #ffffff;
+    /* Teks putih untuk kontras */
+    --navbar-brand-hover: #ffc107;
+    /* Kuning terang untuk hover di tema terang */
+    --button-primary-bg: #0056b3;
+    /* Biru lebih gelap untuk tombol */
+    --button-primary-text: #ffffff;
+    --alert-success-bg: #d4edda;
+    --alert-success-text: #155724;
+    --alert-danger-bg: #f8d7da;
+    --alert-danger-text: #721c24;
+    --alert-warning-bg: #fff3cd;
+    --alert-warning-text: #856404;
+    --table-header-bg: #e9ecef;
+    --table-header-text: #333333;
+    --error-message-color: #dc3545;
+}
+
+[data-theme="dark"] {
+    --background-color: #212529;
+    --text-color: #f8f9fa;
+    --card-background: #343a40;
+    --navbar-background: #2c3034;
+    /* Abu-abu gelap untuk tema gelap */
+    --navbar-text: #f8f9fa;
+    /* Teks putih untuk kontras */
+    --navbar-brand-hover: #17a2b8;
+    /* Cyan untuk hover di tema gelap */
+    --button-primary-bg: #0d6efd;
+    /* Biru tua untuk tombol */
+    --button-primary-text: #ffffff;
+    --alert-success-bg: #2d6b3b;
+    --alert-success-text: #c3e6cb;
+    --alert-danger-bg: #a02934;
+    --alert-danger-text: #f5c6cb;
+    --alert-warning-bg: #856404;
+    --alert-warning-text: #ffeeba;
+    --table-header-bg: #495057;
+    --table-header-text: #f8f9fa;
+    --error-message-color: #f5c6cb;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Roboto', sans-serif;
+}
+
+.navbar {
+    background-color: var(--navbar-background) !important;
+    padding: 0.75rem 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar .nav-link,
+.navbar-brand {
+    color: var(--navbar-text) !important;
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
+    /* Transisi untuk animasi */
+}
+
+.navbar .navbar-brand:hover {
+    color: var(--navbar-brand-hover) !important;
+    transform: scale(1.1);
+    /* Pembesaran saat hover */
+    text-shadow: 0 0 8px var(--navbar-brand-hover);
+    /* Efek glowing */
+}
+
+.navbar .nav-link:hover {
+    color: #e0e0e0 !important;
+}
+
+.navbar .nav-link.active {
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: var(--navbar-text) !important;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+}
+
+.navbar .nav-item {
+    margin-left: 0.75rem;
+}
+
+.navbar .btn-outline-light {
+    border-color: var(--navbar-text);
+    color: var(--navbar-text);
+    padding: 0.375rem 0.75rem;
+    font-size: 0.9rem;
+}
+
+.navbar .btn-outline-light:hover {
+    background-color: var(--button-primary-bg);
+    color: var(--button-primary-text);
+    border-color: var(--button-primary-bg);
+}
+
+.card,
+.alert {
+    background-color: var(--card-background);
+    color: var(--text-color);
+    border-radius: 8px;
+}
+
+.alert-success {
+    background-color: var(--alert-success-bg);
+    color: var(--alert-success-text);
+}
+
+.alert-danger {
+    background-color: var(--alert-danger-bg);
+    color: var(--alert-danger-text);
+}
+
+.alert-warning {
+    background-color: var(--alert-warning-bg);
+    color: var(--alert-warning-text);
+}
+
+.btn-primary {
+    background-color: var(--button-primary-bg);
+    color: var(--button-primary-text);
+    border-color: var(--button-primary-bg);
+}
+
+.btn-primary:hover {
+    background-color: darken(var(--button-primary-bg), 10%);
+    border-color: darken(var(--button-primary-bg), 10%);
+}
+
+.table thead {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+}
+
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.custom-select {
+    min-width: 300px;
+}
+
+.error-message {
+    color: var(--error-message-color);
+    text-align: center;
+    margin-top: 10px;
+}
+
+#activeUsersChart {
+    max-height: 300px;
+    width: 100%;
+    display: block;
+    border: 1px solid var(--text-color);
+    box-sizing: border-box;
+}
+
+/* Transisi untuk perubahan tema */
+body,
+.navbar,
+.card,
+.alert,
+.btn,
+.table {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

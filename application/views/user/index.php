@@ -6,6 +6,11 @@
     <title>User</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+         
+        .nav-link.active {
+            background-color: #0d6efd;
+            font-weight: 500;
+        }
         .table-container {
             max-height: 400px;
             overflow-y: auto;

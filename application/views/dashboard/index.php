@@ -38,7 +38,6 @@
         }
     </style>
 </head>
-<body data-theme="<?php echo $this->session->userdata('theme') ?: 'light'; ?>">
     <div class="container-fluid">
         <div class="row">
             <?php $this->load->view('layout/header', ['title' => 'Dashboard']); ?>
@@ -128,16 +127,16 @@
                     <div class="col-md-4">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Total Upload</h5>
-                                <p class="card-text"><?php echo number_format($total_upload, 2); ?> GB</p>
+                                <h5 class="card-title">Total Pengguna</h5>
+                                <p class="card-text"><?php echo number_format($total_users, 0); ?> Pengguna</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Total Download</h5>
-                                <p class="card-text"><?php echo number_format($total_download, 2); ?> GB</p>
+                                <h5 class="card-title">Total Profile</h5>
+                                <p class="card-text"><?php echo number_format($total_profiles, 0); ?> Profile</p>
                             </div>
                         </div>
                     </div>

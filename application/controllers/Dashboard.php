@@ -24,8 +24,8 @@ class Dashboard extends CI_Controller {
         $data['profiles'] = $this->Dashboard_model->get_profiles();
         $data['selected_profile'] = $profile;
         $data['active_users'] = $this->Dashboard_model->get_active_users_count($profile);
-        $data['total_upload'] = $this->Dashboard_model->get_total_bandwidth('upload', $profile);
-        $data['total_download'] = $this->Dashboard_model->get_total_bandwidth('download', $profile);
+        $data['total_users'] = $this->Dashboard_model->get_total_users($profile);
+        $data['total_profiles'] = $this->Dashboard_model->get_total_profiles();
         $data['sessions'] = $this->Dashboard_model->get_top_users($config['per_page'], $page);
         $data['auth_history'] = $this->Dashboard_model->get_auth_history($username, $config['per_page'], $page);
         $data['pagination'] = $this->pagination->create_links();
@@ -43,7 +43,7 @@ class Dashboard extends CI_Controller {
     public function active_sessions() {
         $profile = $this->input->get('profile');
         $username = $this->input->post('username', TRUE);
-        $start_date = $this->input->get('start_date', TRUE); // Ubah ke GET untuk konsistensi dengan form
+        $start_date = $this->input->get('start_date', TRUE);
         $end_date = $this->input->get('end_date', TRUE);
 
         $config['base_url'] = site_url('dashboard/active_sessions' . ($profile ? '?profile=' . urlencode($profile) : '') . ($start_date ? '&start_date=' . urlencode($start_date) : '') . ($end_date ? '&end_date=' . urlencode($end_date) : ''));
@@ -55,10 +55,8 @@ class Dashboard extends CI_Controller {
         $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
         $data['profiles'] = $this->Dashboard_model->get_profiles();
         $data['selected_profile'] = $profile;
-        // Ambil data ringkasan profil jika profil dipilih
         if ($profile) {
             $data['profile_summary'] = $this->Dashboard_model->get_profile_summary($profile);
-            // Hitung total upload dan download untuk tabel Top User pada Profil
             $data['total_bandwidth'] = $this->Dashboard_model->get_total_bandwidth_per_profile($profile, $start_date, $end_date);
         }
         $data['sessions'] = $this->Dashboard_model->get_top_users($config['per_page'], $page, $start_date, $end_date, $profile);
